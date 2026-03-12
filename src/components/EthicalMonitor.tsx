@@ -14,6 +14,7 @@ const alerts = [
     severity: 'High', 
     message: 'Potential SQL injection vulnerability detected in generated database adapter.', 
     remediation: 'Implement parameterized queries and input validation layer.',
+    recommendation: 'Use an ORM with built-in protection or strictly enforce prepared statements.',
     timestamp: '10 mins ago'
   },
   { 
@@ -22,6 +23,7 @@ const alerts = [
     severity: 'Medium', 
     message: 'Demographic bias detected in user recommendation algorithm logic.', 
     remediation: 'Re-evaluate training data distribution and implement fairness constraints.',
+    recommendation: 'Audit the dataset for underrepresented groups and apply re-weighting techniques.',
     timestamp: '1 hour ago'
   },
   { 
@@ -30,7 +32,17 @@ const alerts = [
     severity: 'Low', 
     message: 'Verbose logging may expose sensitive user metadata in production.', 
     remediation: 'Apply PII masking to logging service and restrict log access.',
+    recommendation: 'Implement a centralized logging policy that automatically redacts patterns matching PII.',
     timestamp: '3 hours ago'
+  },
+  {
+    id: 4,
+    type: 'Ethics',
+    severity: 'High',
+    message: 'Project requirements suggest automated decision-making without human-in-the-loop for high-stakes outcomes.',
+    remediation: 'Integrate a mandatory human review step for final decisions.',
+    recommendation: 'Align with Or4cl3 Ethical Charter: "AI must assist, not replace, critical human judgment."',
+    timestamp: 'Just now'
   }
 ];
 
@@ -61,6 +73,27 @@ export const EthicalMonitor: React.FC = () => {
             <MonitorCard icon={<Eye className="text-blue-400" />} label="Bias Detection" status="Monitoring" score={98} />
             <MonitorCard icon={<Lock className="text-daedalus-accent" />} label="Security Audit" status="Active" score={94} />
             <MonitorCard icon={<Fingerprint className="text-purple-400" />} label="Fairness Check" status="Monitoring" score={99} />
+          </div>
+
+          <div className="glass-panel p-6 space-y-6">
+            <h3 className="font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-daedalus-accent" />
+              Proactive Ethics Analysis
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AnalysisCard 
+                title="Requirement Scanning" 
+                description="Analyzing project goals for ethical risks and alignment with Or4cl3 principles."
+                status="Complete"
+                findings="1 Risk Detected"
+              />
+              <AnalysisCard 
+                title="Code Bias Audit" 
+                description="Scanning generated logic for algorithmic bias and discriminatory patterns."
+                status="Active"
+                findings="Monitoring..."
+              />
+            </div>
           </div>
 
           <div className="glass-panel p-6 space-y-6">
@@ -122,7 +155,7 @@ const MonitorCard = ({ icon, label, status, score }: { icon: React.ReactNode, la
   </div>
 );
 
-const AlertItem = ({ type, severity, message, remediation, timestamp }: any) => (
+const AlertItem = ({ type, severity, message, remediation, recommendation, timestamp }: any) => (
   <div className="p-4 rounded-lg border border-white/5 bg-white/5 space-y-3 hover:border-white/10 transition-colors">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -139,11 +172,38 @@ const AlertItem = ({ type, severity, message, remediation, timestamp }: any) => 
       <span className="text-[10px] font-mono text-daedalus-muted">{timestamp}</span>
     </div>
     <p className="text-sm font-medium">{message}</p>
-    <div className="flex items-start gap-2 p-2 rounded bg-daedalus-bg/50 border border-white/5">
-      <Info className="w-3 h-3 text-daedalus-accent mt-0.5 shrink-0" />
-      <p className="text-[11px] text-daedalus-muted italic">
-        <span className="text-daedalus-accent font-bold not-italic">Remediation:</span> {remediation}
-      </p>
+    <div className="space-y-2">
+      <div className="flex items-start gap-2 p-2 rounded bg-daedalus-bg/50 border border-white/5">
+        <Info className="w-3 h-3 text-daedalus-accent mt-0.5 shrink-0" />
+        <p className="text-[11px] text-daedalus-muted italic">
+          <span className="text-daedalus-accent font-bold not-italic">Remediation:</span> {remediation}
+        </p>
+      </div>
+      {recommendation && (
+        <div className="flex items-start gap-2 p-2 rounded bg-daedalus-accent/5 border border-daedalus-accent/10">
+          <ShieldCheck className="w-3 h-3 text-daedalus-accent mt-0.5 shrink-0" />
+          <p className="text-[11px] text-daedalus-ink">
+            <span className="font-bold">Recommendation:</span> {recommendation}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+const AnalysisCard = ({ title, description, status, findings }: { title: string, description: string, status: string, findings: string }) => (
+  <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+    <div className="flex justify-between items-start">
+      <h4 className="text-sm font-bold">{title}</h4>
+      <span className={cn(
+        "text-[10px] font-mono px-2 py-0.5 rounded",
+        status === 'Complete' ? "bg-green-500/10 text-green-400" : "bg-blue-500/10 text-blue-400 animate-pulse"
+      )}>{status}</span>
+    </div>
+    <p className="text-xs text-daedalus-muted leading-relaxed">{description}</p>
+    <div className="pt-2 flex items-center gap-2">
+      <div className="w-1.5 h-1.5 rounded-full bg-daedalus-accent" />
+      <span className="text-[10px] font-mono text-daedalus-accent uppercase tracking-widest">{findings}</span>
     </div>
   </div>
 );

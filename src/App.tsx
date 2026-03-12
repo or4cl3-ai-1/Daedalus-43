@@ -31,7 +31,8 @@ import {
   Sparkles,
   Eye,
   Download,
-  Play
+  Play,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
@@ -46,21 +47,72 @@ import { ProjectDashboard } from './components/ProjectDashboard';
 import { EthicalMonitor } from './components/EthicalMonitor';
 import { ArtifactCanvas, Artifact } from './components/ArtifactCanvas';
 import { ProjectGallery, Project } from './components/ProjectGallery';
+import { ProtocolView } from './components/ProtocolView';
 import { FileCode, Send, Archive } from 'lucide-react';
 import { Logo } from './components/Logo';
 
-type UserRole = 'Visionary Thinker' | 'Technical Lead' | 'QA Tester';
+type UserRole = 'Project Manager' | 'Developer' | 'QA Tester';
 type AppScreen = 'landing' | 'loading' | 'dashboard';
-type Tab = 'chat' | 'project' | 'ethics' | 'logs' | 'architecture' | 'archive';
+type Tab = 'chat' | 'project' | 'ethics' | 'logs' | 'architecture' | 'archive' | 'protocol';
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>('landing');
-  const [role, setRole] = useState<UserRole>('Visionary Thinker');
+  const [role, setRole] = useState<UserRole>('Developer');
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [mobileView, setMobileView] = useState<'chat' | 'artifact'>('chat');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeArtifact, setActiveArtifact] = useState<Artifact | null>(null);
-  const [artifacts, setArtifacts] = useState<Record<string, Artifact>>({});
+  const [artifacts, setArtifacts] = useState<Record<string, Artifact>>({
+    'arch-001': {
+      id: 'arch-001',
+      type: 'code',
+      title: 'Daedalus System Architecture',
+      language: 'markdown',
+      content: `# Daedalus Neural Synthesis Platform: High-Level Architecture
+
+## 1. Overview
+The Daedalus platform is designed as a distributed, event-driven system that prioritizes real-time collaboration and ethical AI synthesis.
+
+## 2. Core Components
+
+### A. Neural Ingestion Layer (NIL)
+- **Technology**: Node.js / Express / WebSockets
+- **Role**: Entry point for all user interactions.
+- **Scalability**: Horizontal scaling via container orchestration (Cloud Run/K8s).
+
+### B. Synthesis Engine (SE)
+- **Technology**: Python / FastAPI / Gemini 3.1 Pro
+- **Role**: The "brain" that converts requirements into technical artifacts.
+- **Performance**: Asynchronous task queues for heavy synthesis operations.
+
+### C. Ethical Auditor (EA)
+- **Technology**: Custom Neural Bias Detection Service
+- **Role**: Proactive scanning of LLM outputs for bias, security risks, and ethical violations.
+- **Ethics**: Enforces the Or4cl3 Ethical Charter.
+
+### D. Manifestation Layer (ML)
+- **Technology**: React / SVG / D3.js
+- **Role**: Visualizes the synthesized data into interactive components and diagrams.
+
+## 3. Interaction Flow
+1. **User Input** -> NIL (Ingestion)
+2. **NIL** -> SE (Request Synthesis)
+3. **SE** -> EA (Audit Output)
+4. **EA** -> NIL (Verified Result)
+5. **NIL** -> ML (Render Artifact)
+
+## 4. Scalability & Performance
+- **Caching**: Redis-based caching for frequent architectural patterns.
+- **Decoupling**: Event-driven communication via Pub/Sub to prevent bottlenecks.
+- **Edge Delivery**: Global CDN for static assets and artifact delivery.
+
+## 5. Ethical Principles
+- **Transparency**: Every decision made by the SE is logged and auditable by the EA.
+- **Fairness**: Automated bias correction applied to all recommendation logic.
+- **Privacy**: PII masking at the NIL level before data reaches the SE.`,
+      version: 1
+    }
+  });
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -68,7 +120,8 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
-      text: "Neural link established. I am Daedalus. Or4cl3 AI Solutions at your service. What visionary concept shall we architect today?",
+      text: "Neural link established. I am Daedalus. Or4cl3 AI Solutions at your service. I have synthesized the high-level system architecture for our platform. You can view the details in the manifest below.",
+      artifactIds: ['arch-001'],
       timestamp: new Date()
     }
   ]);
@@ -104,7 +157,7 @@ export default function App() {
   useEffect(() => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
-      daedalusRef.current = new DaedalusService(apiKey);
+      daedalusRef.current = new DaedalusService(apiKey, role);
     }
     
     // Load projects from localStorage
@@ -161,11 +214,40 @@ export default function App() {
     setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`].slice(-50));
   };
 
-  const handleLaunch = () => {
+  const canAccessTab = (tab: Tab) => {
+    if (role === 'Project Manager') {
+      return ['chat', 'project', 'ethics', 'archive', 'protocol'].includes(tab);
+    }
+    if (role === 'Developer') {
+      return ['chat', 'project', 'architecture', 'archive', 'protocol', 'logs'].includes(tab);
+    }
+    if (role === 'QA Tester') {
+      return ['chat', 'ethics', 'logs', 'archive', 'protocol'].includes(tab);
+    }
+    return false;
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    if (canAccessTab(tab)) {
+      setActiveTab(tab);
+    } else {
+      addLog(`Access Denied: ${tab.toUpperCase()} module restricted for ${role} role.`);
+    }
+  };
+
+  const handleLaunch = (selectedRole: UserRole) => {
+    setRole(selectedRole);
     setScreen('loading');
     setTimeout(() => {
       setScreen('dashboard');
+      addLog(`Neural link established for ${selectedRole}.`);
       addLog("Ready for autonomous R&D.");
+      
+      // Re-initialize service with correct role
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        daedalusRef.current = new DaedalusService(apiKey, selectedRole);
+      }
       
       // If no project exists, create one
       if (projects.length === 0) {
@@ -376,37 +458,43 @@ export default function App() {
             icon={<Terminal className="w-4 h-4" />} 
             label="Neural Interface" 
             active={activeTab === 'chat'} 
-            onClick={() => setActiveTab('chat')}
+            onClick={() => handleTabChange('chat')}
           />
           <SidebarItem 
             icon={<Archive className="w-4 h-4" />} 
             label="Neural Archive" 
             active={activeTab === 'archive'} 
-            onClick={() => setActiveTab('archive')}
+            onClick={() => handleTabChange('archive')}
           />
           <SidebarItem 
             icon={<BarChart3 className="w-4 h-4" />} 
             label="Project Dashboard" 
             active={activeTab === 'project'} 
-            onClick={() => setActiveTab('project')}
+            onClick={() => handleTabChange('project')}
           />
           <SidebarItem 
             icon={<ShieldAlert className="w-4 h-4" />} 
             label="Ethical Monitor" 
             active={activeTab === 'ethics'} 
-            onClick={() => setActiveTab('ethics')}
+            onClick={() => handleTabChange('ethics')}
           />
           <SidebarItem 
             icon={<Layers className="w-4 h-4" />} 
             label="Architecture Lab" 
             active={activeTab === 'architecture'} 
-            onClick={() => setActiveTab('architecture')}
+            onClick={() => handleTabChange('architecture')}
           />
           <SidebarItem 
             icon={<Activity className="w-4 h-4" />} 
             label="System Logs" 
             active={activeTab === 'logs'} 
-            onClick={() => setActiveTab('logs')}
+            onClick={() => handleTabChange('logs')}
+          />
+          <SidebarItem 
+            icon={<BookOpen className="w-4 h-4" />} 
+            label="Daedalus Protocol" 
+            active={activeTab === 'protocol'} 
+            onClick={() => handleTabChange('protocol')}
           />
         </nav>
 
@@ -468,12 +556,12 @@ export default function App() {
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto">
-              <MobileNavItem icon={<Terminal />} label="Neural Interface" active={activeTab === 'chat'} onClick={() => { setActiveTab('chat'); setIsMobileMenuOpen(false); }} />
-              <MobileNavItem icon={<Archive />} label="Neural Archive" active={activeTab === 'archive'} onClick={() => { setActiveTab('archive'); setIsMobileMenuOpen(false); }} />
-              <MobileNavItem icon={<BarChart3 />} label="Project Dashboard" active={activeTab === 'project'} onClick={() => { setActiveTab('project'); setIsMobileMenuOpen(false); }} />
-              <MobileNavItem icon={<ShieldAlert />} label="Ethical Monitor" active={activeTab === 'ethics'} onClick={() => { setActiveTab('ethics'); setIsMobileMenuOpen(false); }} />
-              <MobileNavItem icon={<Layers />} label="Architecture Lab" active={activeTab === 'architecture'} onClick={() => { setActiveTab('architecture'); setIsMobileMenuOpen(false); }} />
-              <MobileNavItem icon={<Activity />} label="System Logs" active={activeTab === 'logs'} onClick={() => { setActiveTab('logs'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Terminal />} label="Neural Interface" active={activeTab === 'chat'} onClick={() => { handleTabChange('chat'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Archive />} label="Neural Archive" active={activeTab === 'archive'} onClick={() => { handleTabChange('archive'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<BarChart3 />} label="Project Dashboard" active={activeTab === 'project'} onClick={() => { handleTabChange('project'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<ShieldAlert />} label="Ethical Monitor" active={activeTab === 'ethics'} onClick={() => { handleTabChange('ethics'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Layers />} label="Architecture Lab" active={activeTab === 'architecture'} onClick={() => { handleTabChange('architecture'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Activity />} label="System Logs" active={activeTab === 'logs'} onClick={() => { handleTabChange('logs'); setIsMobileMenuOpen(false); }} />
             </nav>
             <div className="p-6 border-t border-daedalus-border">
               <RoleSelector currentRole={role} onRoleChange={setRole} />
@@ -523,9 +611,11 @@ export default function App() {
               </div>
             </div>
             <span className="hidden sm:inline text-[10px] font-mono text-daedalus-muted uppercase tracking-widest">{role}</span>
-            <button className="btn-primary text-[10px] md:text-xs py-1.5 px-3 md:px-4">
-              Deploy
-            </button>
+            {role === 'Project Manager' && (
+              <button className="btn-primary text-[10px] md:text-xs py-1.5 px-3 md:px-4">
+                Deploy
+              </button>
+            )}
           </div>
         </header>
 
@@ -691,7 +781,7 @@ export default function App() {
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                          placeholder={activeArtifact ? `Ask Daedalus to modify ${activeArtifact.title}...` : (role === 'QA Tester' ? "Report bug or query logs..." : "Input requirements or architectural queries...")}
+                          placeholder={activeArtifact ? `Ask Daedalus to modify ${activeArtifact.title}...` : (role === 'Project Manager' ? "Audit project or approve deployment..." : (role === 'QA Tester' ? "Run test suites or query logs..." : "Input requirements or architectural queries..."))}
                           className={cn(
                             "w-full bg-white/5 border border-white/10 rounded-xl pl-24 pr-12 md:pr-16 py-3 md:py-4 focus:outline-none focus:border-daedalus-accent/50 transition-all font-mono text-sm placeholder:text-daedalus-muted/50",
                             activeArtifact ? "rounded-tl-none border-daedalus-accent/30" : ""
@@ -846,6 +936,10 @@ export default function App() {
                     </div>
                   </div>
                 </motion.div>
+              )}
+
+              {activeTab === 'protocol' && (
+                <ProtocolView />
               )}
             </AnimatePresence>
           </div>

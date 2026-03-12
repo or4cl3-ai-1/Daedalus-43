@@ -2,12 +2,15 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Cpu, ChevronRight, Shield, Zap, Code2, Globe, Lock, Terminal } from 'lucide-react';
 import { Logo } from './Logo';
+import { cn } from '../utils/cn';
 
 interface LandingPageProps {
-  onStart: () => void;
+  onStart: (role: 'Project Manager' | 'Developer' | 'QA Tester') => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
+  const [selectedRole, setSelectedRole] = React.useState<'Project Manager' | 'Developer' | 'QA Tester'>('Developer');
+
   return (
     <div className="min-h-screen bg-daedalus-bg text-daedalus-ink flex flex-col relative overflow-hidden grid-bg">
       <div className="scanline" />
@@ -23,7 +26,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <a href="#features" className="hover:text-daedalus-accent transition-colors">Features</a>
           <a href="#ethics" className="hover:text-daedalus-accent transition-colors">Ethics</a>
           <a href="#solutions" className="hover:text-daedalus-accent transition-colors">Solutions</a>
-          <button onClick={onStart} className="btn-primary py-2 px-6 text-sm">Launch Interface</button>
+          <button onClick={() => onStart(selectedRole)} className="btn-primary py-2 px-6 text-sm">Launch Interface</button>
         </div>
       </nav>
 
@@ -50,9 +53,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             From requirements to deployment, we handle the complexity so you can focus on the impact.
           </p>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
+          <div className="glass-panel p-6 max-w-md mx-auto space-y-4">
+            <h3 className="text-xs font-mono uppercase tracking-widest text-daedalus-muted">Select Neural Access Level</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {(['Project Manager', 'Developer', 'QA Tester'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setSelectedRole(r)}
+                  className={cn(
+                    "py-2 px-1 text-[10px] font-mono uppercase tracking-tighter rounded border transition-all",
+                    selectedRole === r 
+                      ? "bg-daedalus-accent/20 border-daedalus-accent text-daedalus-accent" 
+                      : "bg-white/5 border-white/10 text-daedalus-muted hover:border-white/20"
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-daedalus-muted italic">
+              {selectedRole === 'Project Manager' && "High-level project oversight, ethical monitoring, and deployment authority."}
+              {selectedRole === 'Developer' && "Full engineering access, architecture design, and implementation tools."}
+              {selectedRole === 'QA Tester' && "Testing suites, system logs, and ethical verification access."}
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4">
             <button 
-              onClick={onStart}
+              onClick={() => onStart(selectedRole)}
               className="btn-primary w-full md:w-auto flex items-center justify-center gap-2 group text-lg"
             >
               Initialize Neural Link
