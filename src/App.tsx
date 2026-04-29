@@ -32,11 +32,14 @@ import {
   Eye,
   Download,
   Play,
-  BookOpen
+  BookOpen,
+  FileCode,
+  Send,
+  Archive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
-import { DaedalusService, Message } from './services/daedalusService';
+import { DaedalusService, Message, Artifact } from './services/daedalusService';
 import { cn } from './utils/cn';
 import { useDropzone } from 'react-dropzone';
 
@@ -45,15 +48,17 @@ import { LandingPage } from './components/LandingPage';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ProjectDashboard } from './components/ProjectDashboard';
 import { EthicalMonitor } from './components/EthicalMonitor';
-import { ArtifactCanvas, Artifact } from './components/ArtifactCanvas';
+import { ArtifactCanvas } from './components/ArtifactCanvas';
 import { ProjectGallery, Project } from './components/ProjectGallery';
 import { ProtocolView } from './components/ProtocolView';
-import { FileCode, Send, Archive } from 'lucide-react';
+import { ArchitectureAssistant } from './components/ArchitectureAssistant';
+import { ScopeDesigner } from './components/ScopeDesigner';
+import { PrototypeLab } from './components/PrototypeLab';
 import { Logo } from './components/Logo';
 
 type UserRole = 'Project Manager' | 'Developer' | 'QA Tester';
 type AppScreen = 'landing' | 'loading' | 'dashboard';
-type Tab = 'chat' | 'project' | 'ethics' | 'logs' | 'architecture' | 'archive' | 'protocol';
+type Tab = 'chat' | 'project' | 'ethics' | 'logs' | 'architecture' | 'archive' | 'protocol' | 'scope' | 'prototype';
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>('landing');
@@ -216,13 +221,13 @@ The Daedalus platform is designed as a distributed, event-driven system that pri
 
   const canAccessTab = (tab: Tab) => {
     if (role === 'Project Manager') {
-      return ['chat', 'project', 'ethics', 'archive', 'protocol'].includes(tab);
+      return ['chat', 'project', 'ethics', 'archive', 'protocol', 'scope'].includes(tab);
     }
     if (role === 'Developer') {
-      return ['chat', 'project', 'architecture', 'archive', 'protocol', 'logs'].includes(tab);
+      return ['chat', 'project', 'architecture', 'archive', 'protocol', 'logs', 'prototype', 'scope'].includes(tab);
     }
     if (role === 'QA Tester') {
-      return ['chat', 'ethics', 'logs', 'archive', 'protocol'].includes(tab);
+      return ['chat', 'ethics', 'logs', 'archive', 'protocol', 'prototype'].includes(tab);
     }
     return false;
   };
@@ -485,6 +490,18 @@ The Daedalus platform is designed as a distributed, event-driven system that pri
             onClick={() => handleTabChange('architecture')}
           />
           <SidebarItem 
+            icon={<Search className="w-4 h-4" />} 
+            label="Scope Definition" 
+            active={activeTab === 'scope'} 
+            onClick={() => handleTabChange('scope')}
+          />
+          <SidebarItem 
+            icon={<Cpu className="w-4 h-4" />} 
+            label="Prototyping Lab" 
+            active={activeTab === 'prototype'} 
+            onClick={() => handleTabChange('prototype')}
+          />
+          <SidebarItem 
             icon={<Activity className="w-4 h-4" />} 
             label="System Logs" 
             active={activeTab === 'logs'} 
@@ -561,6 +578,8 @@ The Daedalus platform is designed as a distributed, event-driven system that pri
               <MobileNavItem icon={<BarChart3 />} label="Project Dashboard" active={activeTab === 'project'} onClick={() => { handleTabChange('project'); setIsMobileMenuOpen(false); }} />
               <MobileNavItem icon={<ShieldAlert />} label="Ethical Monitor" active={activeTab === 'ethics'} onClick={() => { handleTabChange('ethics'); setIsMobileMenuOpen(false); }} />
               <MobileNavItem icon={<Layers />} label="Architecture Lab" active={activeTab === 'architecture'} onClick={() => { handleTabChange('architecture'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Search />} label="Scope Definition" active={activeTab === 'scope'} onClick={() => { handleTabChange('scope'); setIsMobileMenuOpen(false); }} />
+              <MobileNavItem icon={<Cpu />} label="Prototyping Lab" active={activeTab === 'prototype'} onClick={() => { handleTabChange('prototype'); setIsMobileMenuOpen(false); }} />
               <MobileNavItem icon={<Activity />} label="System Logs" active={activeTab === 'logs'} onClick={() => { handleTabChange('logs'); setIsMobileMenuOpen(false); }} />
             </nav>
             <div className="p-6 border-t border-daedalus-border">
@@ -839,103 +858,15 @@ The Daedalus platform is designed as a distributed, event-driven system that pri
               )}
 
               {activeTab === 'architecture' && (
-                <motion.div 
-                  key="architecture"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full p-4 md:p-8 flex flex-col"
-                >
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h2 className="text-xl font-bold tracking-tight">Architecture Lab</h2>
-                      <p className="text-xs text-daedalus-muted font-mono uppercase tracking-widest">Neural Synthesis Engine v2.0</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="btn-outline py-1 px-3 text-[10px] flex items-center gap-2">
-                        <Download className="w-3 h-3" /> Export SVG
-                      </button>
-                      <button className="btn-primary py-1 px-3 text-[10px] flex items-center gap-2">
-                        <Sparkles className="w-3 h-3" /> Re-Synthesize
-                      </button>
-                    </div>
-                  </div>
+                <ArchitectureAssistant />
+              )}
 
-                  <div className="flex-1 glass-panel relative overflow-hidden flex items-center justify-center bg-black/20">
-                    {/* Grid Background */}
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #22d3ee 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-                    
-                    <svg width="100%" height="100%" viewBox="0 0 800 600" className="relative z-10">
-                      <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-                          <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" />
-                        </marker>
-                      </defs>
-                      
-                      {/* Central Core */}
-                      <motion.g initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
-                        <rect x="350" y="250" width="100" height="100" rx="10" fill="rgba(34, 211, 238, 0.1)" stroke="#22d3ee" strokeWidth="2" />
-                        <text x="400" y="305" textAnchor="middle" fill="#22d3ee" fontSize="12" fontWeight="bold" className="font-mono">CORE</text>
-                      </motion.g>
+              {activeTab === 'scope' && (
+                <ScopeDesigner />
+              )}
 
-                      {/* Modules */}
-                      {[
-                        { x: 150, y: 150, label: "UI ENGINE" },
-                        { x: 650, y: 150, label: "DATA LINK" },
-                        { x: 150, y: 450, label: "NEURAL BUS" },
-                        { x: 650, y: 450, label: "SECURITY" }
-                      ].map((mod, i) => (
-                        <motion.g key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 + i * 0.1 }}>
-                          <rect x={mod.x - 50} y={mod.y - 30} width="100" height="60" rx="5" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.2)" strokeWidth="1" />
-                          <text x={mod.x} y={mod.y + 5} textAnchor="middle" fill="white" fontSize="10" className="font-mono">{mod.label}</text>
-                          
-                          {/* Connection Lines */}
-                          <motion.line 
-                            x1={mod.x} y1={mod.y} x2={400} y2={300} 
-                            stroke="#22d3ee" strokeWidth="1" strokeDasharray="5,5" opacity="0.3"
-                            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1, delay: 1 }}
-                          />
-                        </motion.g>
-                      ))}
-
-                      {/* Animated Particles */}
-                      {[1, 2, 3, 4].map(i => (
-                        <motion.circle
-                          key={i}
-                          r="3"
-                          fill="#22d3ee"
-                          animate={{
-                            cx: [150, 400, 650, 400, 150],
-                            cy: [150, 300, 150, 300, 450],
-                            opacity: [0, 1, 0]
-                          }}
-                          transition={{ duration: 4, repeat: Infinity, delay: i }}
-                        />
-                      ))}
-                    </svg>
-
-                    <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-[10px] font-mono text-daedalus-accent">
-                          <div className="w-2 h-2 bg-daedalus-accent rounded-full animate-ping" />
-                          <span>SYNTHESIZING ARCHITECTURE...</span>
-                        </div>
-                        <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden">
-                          <motion.div 
-                            className="h-full bg-daedalus-accent"
-                            animate={{ width: ['0%', '70%', '65%', '90%'] }}
-                            transition={{ duration: 10, repeat: Infinity }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-[10px] font-mono text-daedalus-muted text-right">
-                        NODES: 12<br />
-                        CONNECTIONS: 42<br />
-                        INTEGRITY: 98.4%
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+              {activeTab === 'prototype' && (
+                <PrototypeLab />
               )}
 
               {activeTab === 'protocol' && (

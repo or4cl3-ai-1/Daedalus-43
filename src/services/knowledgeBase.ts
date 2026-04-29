@@ -123,6 +123,21 @@ export const knowledgeBase: KnowledgeBaseEntry[] = [
          - Identification: Flags deviations from established security and privacy protocols.
          - Recommendation: "Enforce PII masking in logs" or "Implement mandatory security headers."
     `
+  },
+  {
+    title: "Integrated Project Scoping",
+    category: "Best Practice",
+    content: "A systematic approach to defining project boundaries using directed elicitation. Core phases: Vision Definition, Requirement Synthesis, Target Audience Identification, and Goal Alignment."
+  },
+  {
+    title: "Rapid Prototyping Showcase",
+    category: "Best Practice",
+    content: "The creation of high-fidelity 'Neural Mockups' that simulate core functionality. This process focuses on the 'Critical Path' of the user journey to validate architectural decisions early in the development lifecycle."
+  },
+  {
+    title: "Architectural Assistance & Trade-offs",
+    category: "Best Practice",
+    content: "Systematic evaluation of architectures (Monolithic, Microservices, Serverless, Event-Driven). Key metrics: Scalability, Performance, Complexity, and Ethical Alignment (e.g., decentralized data for privacy vs centralized for control)."
   }
 ];
 
