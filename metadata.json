@@ -1,0 +1,8 @@
+{
+  "name": "Daedalus AI",
+  "description": "Futurist AI architectural assistant for autonomous R&D and ethical system synthesis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
