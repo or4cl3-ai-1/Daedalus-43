@@ -63,7 +63,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="min-h-screen w-full bg-[#030308] text-[#e0e0e0] flex flex-col justify-center items-center p-6 relative neural-grid">
+    <div className="min-h-full w-full bg-[#030308] text-[#e0e0e0] flex flex-col justify-center items-center p-6 relative neural-grid py-12">
       <div className="scanline" />
 
       {/* Cybernetic center widget */}

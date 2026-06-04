@@ -394,19 +394,16 @@ export default function App() {
   };
 
   return (
-    <div className={cn(
-      "w-full bg-[#050510] text-[#e2e8f0] relative flex font-sans",
-      appScreen === 'dashboard' ? "h-[100dvh] overflow-hidden" : "min-h-screen overflow-y-auto"
-    )}>
+    <div className="h-[100dvh] w-full bg-[#050510] text-[#e2e8f0] relative flex flex-col font-sans overflow-hidden">
       <AnimatePresence mode="wait">
         {appScreen === 'landing' && (
-          <motion.div key="landing-screen" className="w-full min-h-screen z-50 flex flex-col">
+          <motion.div key="landing-screen" className="w-full h-full z-50 flex flex-col overflow-y-auto">
             <LandingPage onEnter={() => setAppScreen('loading')} />
           </motion.div>
         )}
 
         {appScreen === 'loading' && (
-          <motion.div key="loading-screen" className="w-full min-h-screen z-50 flex flex-col">
+          <motion.div key="loading-screen" className="w-full h-full z-50 flex flex-col overflow-y-auto">
             <LoadingScreen onComplete={handleLoadingComplete} />
           </motion.div>
         )}

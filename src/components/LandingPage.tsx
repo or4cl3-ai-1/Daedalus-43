@@ -8,7 +8,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   return (
-    <div className="min-h-screen w-full relative bg-[#020205] text-[#e2e8f0] flex flex-col items-center justify-between p-6 md:p-12 neural-grid">
+    <div className="min-h-full w-full relative bg-[#020205] text-[#e2e8f0] flex flex-col items-center justify-between p-6 md:p-12 neural-grid py-12 md:py-16">
       <div className="scanline" />
 
       {/* Futuristic Header bar */}
