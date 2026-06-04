@@ -394,16 +394,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#050510] text-[#e2e8f0] relative flex overflow-hidden font-sans">
+    <div className={cn(
+      "w-full bg-[#050510] text-[#e2e8f0] relative flex font-sans",
+      appScreen === 'dashboard' ? "h-[100dvh] overflow-hidden" : "min-h-screen overflow-y-auto"
+    )}>
       <AnimatePresence mode="wait">
         {appScreen === 'landing' && (
-          <motion.div key="landing-screen" className="w-full h-full absolute inset-0 z-50">
+          <motion.div key="landing-screen" className="w-full min-h-screen z-50 flex flex-col">
             <LandingPage onEnter={() => setAppScreen('loading')} />
           </motion.div>
         )}
 
         {appScreen === 'loading' && (
-          <motion.div key="loading-screen" className="w-full h-full absolute inset-0 z-50">
+          <motion.div key="loading-screen" className="w-full min-h-screen z-50 flex flex-col">
             <LoadingScreen onComplete={handleLoadingComplete} />
           </motion.div>
         )}
@@ -415,7 +418,10 @@ export default function App() {
       {showTour && <OnboardingTour onComplete={() => setShowTour(false)} />}
 
       {/* Main Dashboard Panel */}
-      <div className="flex-1 flex flex-col md:flex-row h-screen w-full overflow-hidden p-3 gap-3">
+      <div className={cn(
+        "flex-1 flex flex-col md:flex-row h-full w-full overflow-hidden md:p-3 p-2 gap-3 min-h-0",
+        appScreen !== 'dashboard' && "hidden"
+      )}>
         
         {/* Mobile Navigation Header */}
         <div className="md:hidden flex items-center justify-between p-3 glass-panel border-[#00f2ff]/20 bg-[#080b15]/95 w-full z-30">
@@ -493,11 +499,11 @@ export default function App() {
 
         {/* LEFT COMPONENT COLUMN: Chat & Commands Interface */}
         <aside id="tour-chat" className={cn(
-          "w-full md:w-[350px] lg:w-[400px] flex-col gap-3 transition-all duration-300 md:relative md:flex p-1 md:p-0",
+          "w-full md:w-[350px] lg:w-[400px] flex flex-col gap-3 transition-all duration-300 md:relative p-1 md:p-0 flex-1 min-h-0 md:flex-initial md:h-full",
           mobileTab === 'chat' ? "flex" : "hidden md:flex"
         )}>
           {/* Dashboard Header Bar */}
-          <header className="glass-panel p-4 flex items-center justify-between border-white/5 z-10 w-full">
+          <header className="hidden md:flex glass-panel p-4 items-center justify-between border-white/5 z-10 w-full">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded bg-[#00f2ff] flex items-center justify-center shadow-[0_0_10px_rgba(0,242,255,0.3)]">
                 <Sparkles className="w-4 h-4 text-black animate-spin" style={{ animationDuration: '8s' }} />
@@ -629,7 +635,7 @@ export default function App() {
           </section>
 
           {/* Prompt/History telemetry tips info log inside sidebar */}
-          <section className="p-3 glass-panel border-white/5 bg-slate-900/10 flex flex-col gap-1.5 h-36">
+          <section className="hidden md:flex p-3 glass-panel border-white/5 bg-slate-900/10 flex-col gap-1.5 h-36 shrink-0">
             <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block border-b border-white/5 pb-1 flex items-center gap-1">
               <Terminal className="w-3 h-3 text-emerald-400" /> Action Audit Stream
             </span>
@@ -648,7 +654,10 @@ export default function App() {
         </aside>
 
         {/* RIGHT COMPONENT COLUMN: Core Active Workspace */}
-        <main className="flex-1 flex flex-col gap-3 min-w-0 h-full">
+        <main className={cn(
+          "flex-1 flex flex-col gap-3 min-w-0 min-h-0 md:h-full",
+          mobileTab === 'chat' ? "hidden md:flex" : "flex"
+        )}>
           
           {/* Artifact Navigation toolbar */}
           <header id="tour-artifacts" className="h-14 glass-panel border-white/5 flex items-center px-4 justify-between w-full relative z-10 overflow-x-auto gap-4">

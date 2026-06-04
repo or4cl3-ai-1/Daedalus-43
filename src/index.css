@@ -48,3 +48,16 @@ body {
   0% { transform: translateY(-100vh); }
   100% { transform: translateY(100vh); }
 }
+
+/* Touch Scrolling Optimizations for Mobile Screens */
+.overflow-y-auto, .overflow-y-scroll {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+}
+
+.overflow-x-auto, .overflow-x-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-x: contain !important;
+}
