@@ -25,15 +25,19 @@ import {
   User,
   Zap,
   RotateCcw,
-  Maximize2
+  Maximize2,
+  Users,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { cn } from './utils/cn';
-import { Message, Artifact, UserFeedbackItem, AppState } from './types';
+import { Message, Artifact, UserFeedbackItem, AppState, Collaborator } from './types';
 import { LandingPage } from './components/LandingPage';
 import { LoadingScreen } from './components/LoadingScreen';
 import { OnboardingTour } from './components/OnboardingTour';
 import { FeedbackDashboard } from './components/FeedbackDashboard';
 import { Tooltip } from './components/ui/Tooltip';
+import { generateDaedalusResponse } from './utils/daedalusBrain';
 
 // Helper for initial states
 const INITIAL_MESSAGES: Message[] = [
@@ -62,6 +66,57 @@ const INITIAL_ARTIFACTS: Artifact[] = [
       memoryFootprint: "12 KB stack Allocation",
       efficiencyGains: "99.4%"
     }
+  },
+  {
+    id: 'art-002',
+    type: 'doc',
+    title: 'architecture-proposal.md',
+    content: `# Daedalus High-Level System Architecture Proposal\n\n## 1. Monolithic vs. Microservices Approach\nWe propose an **Event-Driven Modular Monolith** for the rapid initial phase, transition-ready for fine-grained **Microservices** on high-frequency bounds. This guarantees near-zero integration latency early on while maintaining clear domain boundaries (Auth, Synthesis, Sync, Deflation) that can be easily split into independent serverless containers later.\n\n## 2. Key Database Selections\n- **Primary Operational DB**: **PostgreSQL** running on Cloud SQL for highly secure, schema-enforced relational mapping of user checkpoints and audit histories.\n- **Cache & Real-time Stream Engine**: **Redis** to broker transient multi-user live cursors, WebSocket heartbeat pools, and distributed pub-sub event flags.\n\n## 3. Tech Stack Matrix\n- **Client Workspace**: React + Vite (TS), styled with fluid tailwind layers and powered by \`motion\` layouts.\n- **Backend Routing Layer**: TypeScript Node/Express handling lazy client initializations and WebSocket multiplexing.\n- **Sovereign Brain**: Modern Gemini @google/genai SDK (server-side proxy) with granular prompt-bias scrubbing layers.\n\n## 4. Integrated Ethical AI Development\n- **Real-time Bias Scrubbing**: Bi-directional token deflection matching known stereotypes or non-accessible layout recommendations.\n- **Algorithmic Bias Deflation (ABD)**: Active workspace metric rating components on accessibility compliance before rendering.\n- **Human-Oversight Lock**: Explicit user authorization bounds required before code edits can be merged or executed.`,
+    updatedAt: new Date(),
+    architectureDetails: {
+      pattern: "Event-Driven Modular Monolith",
+      complexity: "Medium",
+      scalingTarget: "Unified State Core"
+    },
+    performanceStats: {
+      cpuCost: "Stateless parsing (~0.05ms)",
+      memoryFootprint: "20KB document manifest",
+      efficiencyGains: "100.0%"
+    }
+  },
+  {
+    id: 'art-003',
+    type: 'code',
+    title: 'realtime-sync-engine.ts',
+    content: `// Daedalus Thread Sync & Bias Deflation Orchestrator\n// Core Prototype Demonstration Module\n\ninterface SyncPayload {\n  sessionId: string;\n  caretCoordinates: { x: number; y: number };\n  activeArtifactId: string;\n  injectedTokens: string[];\n}\n\nexport class DaedalusSyncCore {\n  private clientsMap: Map<string, SyncPayload> = new Map();\n  private confScore: number = 99.8;\n\n  constructor(initialConfidence: number) {\n    this.confScore = initialConfidence;\n  }\n\n  /**\n   * Broadcast client pointer activity while deflating potential bias traces\n   */\n  public registerSessionInteraction(sessionId: string, data: SyncPayload): { status: string; score: number } {\n    // Scrub input trace tokens of non-optimal context\n    const secureTokens = data.injectedTokens.filter(tok => !tok.startsWith("__bad_"));\n    \n    this.clientsMap.set(sessionId, {\n      ...data,\n      injectedTokens: secureTokens\n    });\n\n    return {\n      status: "Session synched securely",\n      score: this.confScore\n    };\n  }\n\n  /**\n   * Gather live collaborators mapping\n   */\n  public getActivePeersCount(): number {\n    return this.clientsMap.size;\n  }\n}`,
+    updatedAt: new Date(),
+    architectureDetails: {
+      pattern: "State Mutex Broker Hub",
+      complexity: "Complex",
+      scalingTarget: "50k interactive sockets"
+    },
+    performanceStats: {
+      cpuCost: "0.08 ms thread cycle",
+      memoryFootprint: "8.5 KB instance threshold",
+      efficiencyGains: "98.7%"
+    }
+  },
+  {
+    id: 'art-004',
+    type: 'doc',
+    title: 'requirements-worksheet.md',
+    content: `# Project Initiation & Requirements Gathering Worksheet\n\nTo align our synthesis engine cleanly to your vision, please review and address these strategic queries:\n\n### 💬 Core Clarifying Questions\n1. **What is the central problem statement** you are seeking to solve? Is it workflow drag, cognitive overloading, or high coordination tax?\n2. **Who is your primary target user segment**? (e.g., senior cloud architects, junior frontend devs, general non-technical stakeholders?)\n3. **What is the definitive metric of success** for the MVP? Is it speed of artifact generation, or high precision in compliance checks?\n\n### 📋 Draft Project Scope (Dynamic Base Temp)\n- **MVP Core Goals**: Real-time canvas editing workspace with multi-user cursor awareness.\n- **Interface Deliverables**: Fluent single-screen workspace, low-latency telemetry rail, feedback calibration hub.\n- **Out-of-Scope**: Multi-region cluster failovers and custom LLM model fine-tuning (reserved for Version 2).`,
+    updatedAt: new Date(),
+    architectureDetails: {
+      pattern: "Interactive Discovery Model",
+      complexity: "Simple",
+      scalingTarget: "Stakeholder Alignment"
+    },
+    performanceStats: {
+      cpuCost: "Manual questionnaire entry",
+      memoryFootprint: "5KB worksheet standard",
+      efficiencyGains: "95.0%"
+    }
   }
 ];
 
@@ -87,7 +142,7 @@ const INITIAL_FEEDBACK: UserFeedbackItem[] = [
 const DEFAULT_STATE: AppState = {
   messages: INITIAL_MESSAGES,
   artifacts: INITIAL_ARTIFACTS,
-  activeArtifactId: 'art-001',
+  activeArtifactId: 'art-002',
   feedbackList: INITIAL_FEEDBACK,
   modelLearningRate: 0.050,
   temperature: 0.70,
@@ -96,38 +151,92 @@ const DEFAULT_STATE: AppState = {
 
 // History Hook for robust interactive undo/redo
 function useHistoryState(initialState: AppState) {
-  const [history, setHistory] = useState<AppState[]>([initialState]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [historyState, setHistoryState] = useState<{
+    history: AppState[];
+    currentIndex: number;
+  }>({
+    history: [initialState],
+    currentIndex: 0
+  });
 
   const pushState = useCallback((newState: AppState) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, currentIndex + 1);
-      return [...newHistory, newState];
+    setHistoryState(prev => {
+      const { history: prevHistory, currentIndex: prevIndex } = prev;
+      const newHistory = prevHistory.slice(0, prevIndex + 1);
+      return {
+        history: [...newHistory, newState],
+        currentIndex: prevIndex + 1
+      };
     });
-    setCurrentIndex(prev => prev + 1);
-  }, [currentIndex]);
+  }, []);
+
+  const overwriteState = useCallback((newState: AppState) => {
+    setHistoryState(prev => {
+      const { history: prevHistory, currentIndex: prevIndex } = prev;
+      const newHistory = [...prevHistory];
+      newHistory[prevIndex] = newState;
+      return {
+        ...prev,
+        history: newHistory
+      };
+    });
+  }, []);
 
   const undo = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-    }
-  }, [currentIndex]);
+    setHistoryState(prev => {
+      const { history: prevHistory, currentIndex: prevIndex } = prev;
+      if (prevIndex > 0) {
+        return {
+          history: prevHistory,
+          currentIndex: prevIndex - 1
+        };
+      }
+      return prev;
+    });
+  }, []);
 
   const redo = useCallback(() => {
-    if (currentIndex < history.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    }
-  }, [currentIndex, history.length]);
+    setHistoryState(prev => {
+      const { history: prevHistory, currentIndex: prevIndex } = prev;
+      if (prevIndex < prevHistory.length - 1) {
+        return {
+          history: prevHistory,
+          currentIndex: prevIndex + 1
+        };
+      }
+      return prev;
+    });
+  }, []);
+
+  const activeState = historyState.history[historyState.currentIndex] || historyState.history[historyState.history.length - 1] || initialState;
 
   return {
-    state: history[currentIndex],
+    state: activeState,
     pushState,
+    overwriteState,
     undo,
     redo,
-    canUndo: currentIndex > 0,
-    canRedo: currentIndex < history.length - 1
+    canUndo: historyState.currentIndex > 0,
+    canRedo: historyState.currentIndex < historyState.history.length - 1
   };
 }
+
+const generateUserSession = () => {
+  const adjectives = ["Hex", "Cyber", "Quantum", "Hyper", "Vortex", "Matrix", "Aero", "Pixel", "Cosmic", "Synth"];
+  const nouns = ["Daedalist", "Oraclist", "Dev", "Node", "Architect", "Validator", "Peer", "Engine", "Mesh", "Coder"];
+  const colors = ["#00f2ff", "#ff007f", "#39ff14", "#ffaa00", "#bd00ff", "#00ffcc", "#ff003c", "#ecef1a"];
+  
+  const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+  const randomColor = colors[Math.floor(Math.random() * colors.length)];
+  const id = 'user-' + Math.random().toString(36).substring(2, 9);
+  
+  return {
+    id,
+    name: `${randomAdj} ${randomNoun}`,
+    color: randomColor
+  };
+};
 
 export default function App() {
   const [appScreen, setAppScreen] = useState<'landing' | 'loading' | 'dashboard'>('landing');
@@ -144,13 +253,235 @@ export default function App() {
   const [humanOversightLock, setHumanOversightLock] = useState<boolean>(true);
 
   // Local state with History
-  const { state, pushState, undo, redo, canUndo, canRedo } = useHistoryState(DEFAULT_STATE);
+  const { state, pushState, overwriteState, undo, redo, canUndo, canRedo } = useHistoryState(DEFAULT_STATE);
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Collaboration State and network bindings
+  const [localUser] = useState(() => generateUserSession());
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
+  const [isSimulatingPeer, setIsSimulatingPeer] = useState(false);
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const isRemoteUpdate = useRef<boolean>(false);
+  const simWsRef = useRef<WebSocket | null>(null);
+  const simIntervalRef = useRef<any>(null);
+
+  // Central state synchronization wrapper propagating client actions cleanly to WebSocket and local history
+  const syncState = useCallback((newState: AppState, isPush = true) => {
+    if (isPush) {
+      pushState(newState);
+    } else {
+      overwriteState(newState);
+    }
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && !isRemoteUpdate.current) {
+      wsRef.current.send(JSON.stringify({
+        type: "state_update",
+        payload: newState
+      }));
+    }
+  }, [pushState, overwriteState]);
+
+  // Connection Hook establishing real active WebSocket to our Express server
+  useEffect(() => {
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+
+    const connect = () => {
+      setConnectionStatus("connecting");
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      // Ensure the socket uses our specified isolated collaborative channel route
+      const socketUrl = `${protocol}//${window.location.host}/ws/collaboration`;
+
+      ws = new WebSocket(socketUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setConnectionStatus("connected");
+        addTip("Established real-time collaborative workspace connection!");
+        ws?.send(JSON.stringify({
+          type: "join",
+          payload: localUser
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const decoded = JSON.parse(event.data);
+          const { type, payload } = decoded;
+
+          switch (type) {
+            case "init": {
+              const { state: serverState, collaborators: activeCollabs } = payload;
+              isRemoteUpdate.current = true;
+              overwriteState(serverState);
+              // Store all other active collaborators (excluding ourselves)
+              setCollaborators(activeCollabs.filter((c: any) => c.id !== localUser.id));
+              setTimeout(() => {
+                isRemoteUpdate.current = false;
+              }, 50);
+              break;
+            }
+
+            case "user_joined": {
+              setCollaborators(prev => {
+                if (prev.some(c => c.id === payload.id)) return prev;
+                return [...prev, payload];
+              });
+              addTip(`Collaborator '${payload.name}' connected in real-time.`);
+              break;
+            }
+
+            case "user_left": {
+              setCollaborators(prev => prev.filter(c => c.id !== payload.id));
+              addTip("A collaborator disconnected.");
+              break;
+            }
+
+            case "state_update": {
+              isRemoteUpdate.current = true;
+              overwriteState(payload);
+              setTimeout(() => {
+                isRemoteUpdate.current = false;
+              }, 50);
+              break;
+            }
+
+            case "cursor_update": {
+              setCollaborators(prev => prev.map(c => {
+                if (c.id === payload.id) {
+                  return {
+                    ...c,
+                    cursor: payload.cursor,
+                    activeArtifactId: payload.activeArtifactId
+                  };
+                }
+                return c;
+              }));
+              break;
+            }
+
+            default:
+              break;
+          }
+        } catch (err) {
+          console.error("Client received corrupted frame:", err);
+        }
+      };
+
+      ws.onerror = () => {
+        setConnectionStatus("disconnected");
+      };
+
+      ws.onclose = () => {
+        setConnectionStatus("disconnected");
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+      clearTimeout(reconnectTimeout);
+    };
+  }, [localUser, overwriteState]);
+
+  // Secondary simulated peer that connects its own independent WebSocket
+  const startSimulatedPeer = () => {
+    setIsSimulatingPeer(true);
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socketUrl = `${protocol}//${window.location.host}/ws/collaboration`;
+    
+    const simWs = new WebSocket(socketUrl);
+    simWsRef.current = simWs;
+
+    simWs.onopen = () => {
+      // Connect our second simulated socket as "Quantum Copilot 🤖"
+      simWs.send(JSON.stringify({
+        type: "join",
+        payload: {
+          id: "user-sim-copilot",
+          name: "Quantum Copilot 🤖",
+          color: "#ff007f",
+          isSimulated: true
+        }
+      }));
+    };
+
+    let px = 180;
+    let py = 140;
+    let angle = 0;
+    let snippetStep = 0;
+
+    const snippets = [
+      "\n// Synergy established. Synchronizing dynamic thread buffers...",
+      "\nexport function handleElasticSync<T>(payload: T): T {\n  return payload; \n}",
+      "\n// Scanning cloud runtime bounds... PII Scrub completed successfully.",
+      "\n// Latency optimal. Active peer synchronization aligned."
+    ];
+
+    simIntervalRef.current = setInterval(() => {
+      if (simWs.readyState !== WebSocket.OPEN) return;
+
+      // 1. Move pointer smoothly on the virtual canvas
+      angle += 0.3;
+      px = 250 + Math.cos(angle) * 120 + Math.sin(angle * 0.7) * 40;
+      py = 180 + Math.sin(angle) * 90 + Math.cos(angle * 1.3) * 30;
+
+      simWs.send(JSON.stringify({
+        type: "cursor_move",
+        payload: {
+          cursor: { x: Math.round(px), y: Math.round(py) },
+          activeArtifactId: state.activeArtifactId
+        }
+      }));
+
+      // 2. Occasionally simulate live edits into the active artifact
+      if (Math.random() < 0.25 && state.activeArtifactId) {
+        const activeArt = state.artifacts.find(a => a.id === state.activeArtifactId);
+        if (activeArt) {
+          const block = snippets[snippetStep % snippets.length];
+          const newContent = activeArt.content + block;
+          
+          const updated = state.artifacts.map(art => 
+            art.id === activeArt.id ? { ...art, content: newContent, updatedAt: new Date() } : art
+          );
+
+          simWs.send(JSON.stringify({
+            type: "state_update",
+            payload: {
+              ...state,
+              artifacts: updated
+            }
+          }));
+
+          snippetStep++;
+        }
+      }
+    }, 800);
+  };
+
+  const stopSimulatedPeer = () => {
+    setIsSimulatingPeer(false);
+    if (simWsRef.current) {
+      simWsRef.current.close();
+      simWsRef.current = null;
+    }
+    if (simIntervalRef.current) {
+      clearInterval(simIntervalRef.current);
+      simIntervalRef.current = null;
+    }
+  };
 
   // Handle send prompt
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isTyping) return;
 
     const newMessage: Message = {
       id: 'm-' + Math.random().toString(36).substr(2, 9),
@@ -164,76 +495,136 @@ export default function App() {
       messages: [...state.messages, newMessage]
     };
 
-    pushState(newState);
+    syncState(newState, true);
     setInputText('');
     
     addTip(`User sent command. History checkpoints updated to: ${state.messages.length + 1}`);
 
-    // Simulate cybernetic Daedalus analysis
-    setTimeout(() => {
-      const hasCodeTrigger = /code|react|npm|ts|function|middleware/i.test(newMessage.content);
-      const randomId = 'art-' + Math.random().toString(36).substr(2, 9);
-      
-      const newArtifact: Artifact | null = hasCodeTrigger ? {
-        id: randomId,
-        type: 'code',
-        title: `${newMessage.content.split(' ').slice(0, 2).join('-').toLowerCase() || 'module'}.ts`,
-        content: `// Synthesized code for target concept: ${newMessage.content}\n\nexport const initializedService = () => {\n  console.log("Service initializing recursively...");\n  return {\n    activated: true,\n    token: "${Math.random().toString(36).substr(2, 10)}"\n  };\n};`,
-        updatedAt: new Date(),
-        architectureDetails: {
-          pattern: "Event-Driven micro-module",
-          complexity: "Low",
-          scalingTarget: "50k dynamic events"
-        },
-        performanceStats: {
-          cpuCost: "0.08 ms",
-          memoryFootprint: "8 KB heap allocation",
-          efficiencyGains: "99.9%"
+    // Determine if they are asking to generate/create/build/make/produce an artifact/blueprint/file, or if it is a general question
+    const isRequestingArtifact = /(?:create|generate|build|write|make|synthesize|produce|materialize|design)\s+(?:an?\s+)?(?:artifact|file|blueprint|template|code|script|routine|doc|manifest|schema)/i.test(newMessage.content) || 
+                                 /^(?:create|generate|build|write|make|synthesize|produce|materialize|design|add)\b/i.test(newMessage.content);
+    
+    if (!isRequestingArtifact) {
+      setIsTyping(true);
+      try {
+        const response = await fetch("/api/daedalus/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: newState.messages,
+            biasMitigationLevel
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("API server returned failure status");
         }
-      } : {
-        id: randomId,
-        type: 'doc',
-        title: `${newMessage.content.split(' ').slice(0, 2).join('-').toLowerCase() || 'manifest'}-manifest.md`,
-        content: `# Architectural Manifest: ${newMessage.content}\n\n1. Overview: Modular design supporting decentralized nodes.\n2. Pattern: Event Pub/Sub pipeline using a stateless zero-overhead layout.\n3. Security: Encrypted channels running validation layers on client interfaces and secure database middleware.`,
-        updatedAt: new Date(),
-        architectureDetails: {
-          pattern: "Stateless decoupled pipeline",
-          complexity: "Medium",
-          scalingTarget: "Unlimited horizontal pods"
-        },
-        performanceStats: {
-          cpuCost: "Zero structural processing cost",
-          memoryFootprint: "0 bytes system footprint",
-          efficiencyGains: "98.7% readability"
-        }
-      };
+        
+        const data = await response.json();
+        
+        const modelResponse: Message = {
+          id: 'm-' + Math.random().toString(36).substr(2, 9),
+          role: 'model',
+          content: data.content,
+          timestamp: new Date()
+        };
 
-      const modelResponse: Message = {
-        id: 'm-' + Math.random().toString(36).substr(2, 9),
-        role: 'model',
-        content: `Synthesis complete. Materialized artifact '${newArtifact.title}' matching specifications. Adjust quality rating or inject tuning feedback below.`,
-        timestamp: new Date()
-      };
+        syncState({
+          ...newState,
+          messages: [...newState.messages, modelResponse]
+        }, true);
 
-      pushState({
-        ...newState,
-        messages: [...newState.messages, modelResponse],
-        artifacts: [...newState.artifacts, newArtifact],
-        activeArtifactId: newArtifact.id
-      });
+        addTip(data.tip || "Direct neural link response generated.");
+      } catch (err: any) {
+        console.warn("API router fallback activated:", err);
+        // Seamless fallback to our local conversational builder engine
+        const { content: fbContent, tip: fbTip } = generateDaedalusResponse(newMessage.content, biasMitigationLevel);
 
-      addTip(`Daedalus synthesized '${newArtifact.title}'. Action checkpoints recorded.`);
-    }, 1200);
+        const modelResponse: Message = {
+          id: 'm-' + Math.random().toString(36).substr(2, 9),
+          role: 'model',
+          content: fbContent,
+          timestamp: new Date()
+        };
+
+        syncState({
+          ...newState,
+          messages: [...newState.messages, modelResponse]
+        }, true);
+
+        addTip(`${fbTip} [Offline Router]`);
+      } finally {
+        setIsTyping(false);
+      }
+    } else {
+      // Synthesize an artifact
+      setIsTyping(true);
+      setTimeout(() => {
+        const hasCodeTrigger = /code|react|npm|ts|function|middleware/i.test(newMessage.content);
+        const randomId = 'art-' + Math.random().toString(36).substr(2, 9);
+        
+        const newArtifact: Artifact = hasCodeTrigger ? {
+          id: randomId,
+          type: 'code',
+          title: `${newMessage.content.split(' ').slice(1, 4).join('-').toLowerCase() || 'module'}.ts`,
+          content: `// Synthesized code for target concept: ${newMessage.content}\n\nexport const initializedService = () => {\n  console.log("Service initializing recursively...");\n  return {\n    activated: true,\n    token: "${Math.random().toString(36).substr(2, 10)}"\n  };\n};`,
+          updatedAt: new Date(),
+          architectureDetails: {
+            pattern: "Event-Driven micro-module",
+            complexity: "Low",
+            scalingTarget: "50k dynamic events"
+          },
+          performanceStats: {
+            cpuCost: "0.08 ms",
+            memoryFootprint: "8 KB heap allocation",
+            efficiencyGains: "99.9%"
+          }
+        } : {
+          id: randomId,
+          type: 'doc',
+          title: `${newMessage.content.split(' ').slice(1, 4).join('-').toLowerCase() || 'manifest'}-manifest.md`,
+          content: `# Architectural Manifest: ${newMessage.content}\n\n1. Overview: Modular design supporting decentralized nodes.\n2. Pattern: Event Pub/Sub pipeline using a stateless zero-overhead layout.\n3. Security: Encrypted channels running validation layers on client interfaces and secure database middleware.`,
+          updatedAt: new Date(),
+          architectureDetails: {
+            pattern: "Stateless decoupled pipeline",
+            complexity: "Medium",
+            scalingTarget: "Unlimited horizontal pods"
+          },
+          performanceStats: {
+            cpuCost: "Zero structural processing cost",
+            memoryFootprint: "0 bytes system footprint",
+            efficiencyGains: "98.7% readability"
+          }
+        };
+
+        const modelResponse: Message = {
+          id: 'm-' + Math.random().toString(36).substr(2, 9),
+          role: 'model',
+          content: `Synthesis complete. Materialized artifact '${newArtifact.title}' matching specifications. Adjust quality rating or inject tuning feedback below.`,
+          timestamp: new Date()
+        };
+
+        syncState({
+          ...newState,
+          messages: [...newState.messages, modelResponse],
+          artifacts: [...newState.artifacts, newArtifact],
+          activeArtifactId: newArtifact.id
+        }, true);
+
+        addTip(`Daedalus synthesized '${newArtifact.title}'. Action checkpoints recorded.`);
+        setIsTyping(false);
+      }, 1200);
+    }
   };
 
   const handleUpdateArtifactText = (id: string, newContent: string) => {
     const updatedArtifacts = state.artifacts.map(art => 
       art.id === id ? { ...art, content: newContent, updatedAt: new Date() } : art
     );
-    pushState({
+    syncState({
       ...state,
       artifacts: updatedArtifacts
-    });
+    }, false);
   };
 
   const handleCreateEmptyArtifact = () => {
@@ -256,32 +647,32 @@ export default function App() {
       }
     };
 
-    pushState({
+    syncState({
       ...state,
       artifacts: [...state.artifacts, emptyArtifact],
       activeArtifactId: defaultId
-    });
+    }, true);
     addTip(`Manually generated empty routine template`);
   };
 
   const handleDeleteArtifact = (id: string) => {
     const filtered = state.artifacts.filter(a => a.id !== id);
     const nextActive = filtered[0]?.id || null;
-    pushState({
+    syncState({
       ...state,
       artifacts: filtered,
       activeArtifactId: nextActive
-    });
+    }, true);
     addTip(`Purged system artifact: ${id}`);
   };
 
   // Adjust parameters manually via calibration settings
   const handleAdjustParameters = (t: number, lr: number) => {
-    pushState({
+    syncState({
       ...state,
       temperature: t,
       modelLearningRate: lr
-    });
+    }, true);
   };
 
   // Up/down rates directly on code components or response bubbles
@@ -308,11 +699,11 @@ export default function App() {
         }
       };
 
-      pushState({
+      syncState({
         ...state,
         feedbackList: [feedbackItem, ...state.feedbackList],
         temperature: Math.max(0.1, state.temperature - 0.01)
-      });
+      }, true);
       addTip(`Positively reinforced '${art.title}' parameter matrix`);
     } else {
       // Trigger prompt input for precise comments
@@ -343,11 +734,11 @@ export default function App() {
       }
     };
 
-    pushState({
+    syncState({
       ...state,
       feedbackList: [feedbackItem, ...state.feedbackList],
       temperature: Math.min(1.5, state.temperature + 0.02)
-    });
+    }, true);
     setFeedbackOverlayOpen(null);
     setCustomComment('');
     addTip(`Calibrated model weights parameters dynamically: ${opinion.slice(0, 30)}...`);
@@ -371,11 +762,11 @@ export default function App() {
       }
     };
 
-    pushState({
+    syncState({
       ...state,
       feedbackList: [feedbackItem, ...state.feedbackList],
       temperature: rating === 'up' ? Math.max(0.1, state.temperature - 0.02) : Math.min(1.5, state.temperature + 0.03)
-    });
+    }, true);
     addTip(`Injected calibration token event: ${comment.slice(0, 30)}...`);
   };
 
@@ -609,6 +1000,20 @@ export default function App() {
                   <span className="text-[7.5px] font-mono opacity-30 px-1">{new Date(m.timestamp).toLocaleTimeString()}</span>
                 </div>
               ))}
+
+              {isTyping && (
+                <div className="flex flex-col max-w-[85%] space-y-1 my-2 items-start">
+                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest px-0.5">
+                    Daedalus Core
+                  </span>
+                  <div className="px-3.5 py-2.5 rounded-xl text-xs bg-slate-950/40 text-[#a0aec0] border border-white/5 rounded-tl-none flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00f2ff] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00f2ff] animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00f2ff] animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="font-mono text-[9px] text-[#00f2ff]/60 tracking-wider">ALIGNING NEURAL PATHS...</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Direct prompt trigger input */}
@@ -718,14 +1123,89 @@ export default function App() {
               )}
             </div>
 
-            <Tooltip content="Manually develop new blueprint routine">
-              <button 
-                onClick={handleCreateEmptyArtifact}
-                className="p-1 px-2.5 rounded border border-white/10 hover:border-[#00f2ff]/30 text-[#00f2ff] bg-white/5 hover:bg-[#00f2ff]/5 transition-all text-[10px] font-mono uppercase tracking-widest flex items-center gap-1 whitespace-nowrap"
-              >
-                <Plus className="w-3.5 h-3.5" /> Build Routine
-              </button>
-            </Tooltip>
+            {/* Real-time collaborative info & simulation panel */}
+            <div className="flex items-center gap-3 pl-3 border-l border-white/5 select-none shrink-0">
+              
+              {/* WS Session Sync Bead */}
+              <Tooltip content={connectionStatus === 'connected' ? `Connected as ${localUser.name}` : "Reconnecting synchronization node..."}>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-black/40 border border-white/5 font-mono text-[9px]">
+                  {connectionStatus === 'connected' ? (
+                    <>
+                      <Wifi className="w-3.5 h-3.5 text-[#00f2ff] animate-pulse" />
+                      <span className="text-[#00f2ff] font-bold">LINK LIVE</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="w-3.5 h-3.5 text-rose-500 animate-bounce" />
+                      <span className="text-rose-500 font-bold uppercase">DISCONNECTED</span>
+                    </>
+                  )}
+                </div>
+              </Tooltip>
+
+              {/* Active Teammates Avatars */}
+              <div className="hidden sm:flex items-center -space-x-1.5 overflow-hidden">
+                <Tooltip content={`You: ${localUser.name}`}>
+                  <div 
+                    className="w-5.5 h-5.5 rounded-full flex items-center justify-center text-[8px] font-mono font-black text-black border shadow-sm select-none shrink-0"
+                    style={{ backgroundColor: localUser.color, borderColor: localUser.color }}
+                  >
+                    {localUser.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                </Tooltip>
+
+                {collaborators.map((c) => (
+                  <Tooltip key={c.id} content={`${c.name} ${c.activeArtifactId ? `(editing active artifact)` : '(browsing)'}`}>
+                    <div 
+                      className="w-5.5 h-5.5 rounded-full flex items-center justify-center text-[8px] font-mono font-black text-white border shadow-sm select-none shrink-0 transition-transform hover:scale-110"
+                      style={{ backgroundColor: c.color, borderColor: c.color }}
+                    >
+                      {c.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                  </Tooltip>
+                ))}
+
+                {collaborators.length === 0 && (
+                  <span className="text-[8px] font-mono text-gray-500 px-1 uppercase tracking-widest leading-none">Sole Dev</span>
+                )}
+              </div>
+
+              {/* Simulation Sandbox Button */}
+              <Tooltip content={isSimulatingPeer ? "Deactivate virtual development peer simulation" : "Connect simulated peer socket to show simultaneous editing"}>
+                <button
+                  onClick={() => {
+                    if (isSimulatingPeer) {
+                      stopSimulatedPeer();
+                      addTip("Terminated Virtual Copilot websocket session.");
+                    } else {
+                      startSimulatedPeer();
+                      addTip("Initiated separate Virtual Copilot websocket connection...");
+                    }
+                  }}
+                  className={cn(
+                    "px-2.5 py-1 text-[9px] font-mono uppercase tracking-wider rounded border transition-all h-7 flex items-center gap-1 font-bold",
+                    isSimulatingPeer 
+                      ? "bg-rose-500/15 text-rose-400 border-rose-500/30 animate-pulse hover:bg-rose-500/25"
+                      : "bg-[#00f2ff]/5 text-[#00f2ff]/80 border-[#00f2ff]/20 hover:bg-[#00f2ff]/10 hover:text-[#00f2ff]"
+                  )}
+                >
+                  <Users className="w-3 h-3" />
+                  {isSimulatingPeer ? "Peer: SIM ACTIVE" : "Simulate Co-Dev"}
+                </button>
+              </Tooltip>
+
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Tooltip content="Manually develop new blueprint routine">
+                <button 
+                  onClick={handleCreateEmptyArtifact}
+                  className="p-1 px-2.5 rounded border border-white/10 hover:border-[#00f2ff]/30 text-[#00f2ff] bg-white/5 hover:bg-[#00f2ff]/5 transition-all text-[10px] font-mono uppercase tracking-widest flex items-center gap-1 whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Build Routine
+                </button>
+              </Tooltip>
+            </div>
           </header>
 
           {/* Artifact Visual Workspace & System Analytics Grid */}
@@ -763,12 +1243,53 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Direct interactive editing of artifact state */}
-                    <textarea 
-                      className="flex-1 bg-transparent p-5 font-mono text-xs text-[#a5c6ff] outline-none resize-none leading-relaxed overflow-y-auto selection:bg-[#00f2ff]/20"
-                      value={activeArtifact.content}
-                      onChange={(e) => handleUpdateArtifactText(activeArtifact.id, e.target.value)}
-                    />
+                    {/* Direct interactive editing of artifact state wrapped in collaboration hover coordinates */}
+                    <div className="flex-1 relative overflow-hidden flex flex-col w-full h-full">
+                      {/* Active Peer Hover Pointers */}
+                      {collaborators.map(c => {
+                        if (c.activeArtifactId === activeArtifact.id && c.cursor) {
+                          return (
+                            <div 
+                              key={c.id}
+                              className="absolute pointer-events-none transition-all duration-75 z-20 flex items-center gap-1"
+                              style={{ left: c.cursor.x, top: c.cursor.y }}
+                            >
+                              <svg width="14" height="20" viewBox="0 0 14 20" fill="none" style={{ color: c.color }} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                                <path d="M0 0V16L4 12L8 20L11 18L7 11L12 10L0 0Z" fill="currentColor"/>
+                              </svg>
+                              <span 
+                                className="px-1.5 py-0.5 rounded text-[8px] font-mono whitespace-nowrap text-white font-extrabold shadow-sm tracking-wider"
+                                style={{ backgroundColor: c.color }}
+                              >
+                                {c.name}
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+
+                      <textarea 
+                        className="flex-1 bg-transparent p-5 font-mono text-xs text-[#a5c6ff] outline-none resize-none leading-relaxed overflow-y-auto selection:bg-[#00f2ff]/20 w-full h-full"
+                        value={activeArtifact.content}
+                        onChange={(e) => handleUpdateArtifactText(activeArtifact.id, e.target.value)}
+                        onMouseMove={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.clientX - rect.left;
+                          const y = e.clientY - rect.top;
+                          
+                          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                            wsRef.current.send(JSON.stringify({
+                              type: "cursor_move",
+                              payload: {
+                                cursor: { x, y },
+                                activeArtifactId: activeArtifact.id
+                              }
+                            }));
+                          }
+                        }}
+                      />
+                    </div>
 
                     {/* Quick feedback mechanism directly aligned with code */}
                     <div className="p-3 border-t border-white/5 bg-slate-950/40 flex items-center justify-between text-[10px] font-mono">

@@ -51,3 +51,13 @@ export interface AppState {
   temperature: number;
   biasConfidenceScore: number;
 }
+
+export interface Collaborator {
+  id: string;
+  name: string;
+  color: string;
+  cursor?: { x: number; y: number };
+  activeArtifactId?: string | null;
+  isSimulated?: boolean;
+}
+
